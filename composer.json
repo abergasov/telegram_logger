@@ -1,0 +1,34 @@
+{
+  "name": "abergasov/telegram_logger",
+  "description": "Telegram php logger",
+  "keywords": ["telegram", "php", "logger", "composer"],
+  "homepage": "https://github.com/abergasov/telegram_logger",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alexander Bergasov",
+      "email": "abergasov@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.6.0",
+    "ext-curl": "*",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^8.2.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tlogger\\": "src/Tlogger/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  }
+}
