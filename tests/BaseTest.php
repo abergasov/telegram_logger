@@ -49,6 +49,17 @@ class BaseTest extends TestCase {
         $this->assertTrue(strlen($logger->decorateUrl) === strlen($decorateUrl));
     }
 
+    public function testDataTransformer () {
+        $method = new ReflectionMethod('Tlogger\TelegramLogger', 'transformData');
+        $method->setAccessible(true);
+
+        $fancyThing = new TelegramLogger('test', 123);
+
+        $method->invokeArgs($fancyThing, array('13', '22'));
+        $result = $method->invoke($fancyThing, '123');
+        $this->assertIsArray($result);
+    }
+
     public function testWrongTokenType () {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Token should be string');

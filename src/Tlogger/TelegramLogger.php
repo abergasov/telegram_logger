@@ -48,6 +48,10 @@ class TelegramLogger {
         $this->logPath = $createTelegramLog;
     }
 
+    private function transformData ($data) {
+        return [];
+    }
+
     public function __get($name) {
         switch ($name) {
             case 'token':
