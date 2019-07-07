@@ -59,6 +59,15 @@ class BaseTest extends TestCase {
         $this->assertIsString($logger->logPath);
         $this->assertIsString($logger->decorateUrl);
         $this->assertTrue(strlen($logger->decorateUrl) === strlen($config['decorate_url']));
+
+        //test access/error logs
+        $config['logs'] = [
+            'access_log' => __DIR__ . '/access_log.log',
+            'error_log' => __DIR__ . '/error_log.log',
+        ];
+        $logger = new TelegramLogger($config);
+        $this->assertEquals($logger->logs, $config['logs']);
+
     }
 
     public function testDataTransformer () {

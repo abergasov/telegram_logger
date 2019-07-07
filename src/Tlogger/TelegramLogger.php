@@ -12,6 +12,7 @@ class TelegramLogger {
     private $chatTarget = null;
     private $logPath = null;
     private $decorateUrl = null;
+    private $logs = [];
 
     private $traceFile = null;
 
@@ -56,6 +57,18 @@ class TelegramLogger {
         }
         $this->decorateUrl = isset($config['decorate_url']) ? $config['decorate_url'] : '';
         $this->logPath = $createTelegramLog;
+        if (isset($config['logs']) && is_array($config['logs'])) {
+            if (file_exists($config['logs']['access_log'])) {
+                if (!is_readable($config['logs']['access_log'])) throw new InvalidArgumentException('Access log is not readable');
+
+                $this->logs['access_log'] = $config['logs']['access_log'];
+            }
+            if (file_exists($config['logs']['error_log'])) {
+                if (!is_readable($config['logs']['error_log'])) throw new InvalidArgumentException('Error log is not readable');
+
+                $this->logs['error_log'] = $config['logs']['error_log'];
+            }
+        }
     }
 
     /**
@@ -159,12 +172,61 @@ class TelegramLogger {
             $logData[] = '$_SERVER = ' . var_export(filter_input_array(INPUT_SERVER, FILTER_SANITIZE_STRING), true);
         }
 
+        if (!empty($this->logs) && isset($this->logs['access_log'])) {
+            $logData[] = 'access_log = ' . var_export($this->parseLogFile('access_log'), true);
+        }
+        if (!empty($this->logs) && isset($this->logs['error_log'])) {
+            $logData[] = 'error_log = ' . var_export($this->parseLogFile('error_log'), true);
+        }
+
+        //todo additional info into logs via GLOBALS vars
+        /*foreach (['ql_errors', 'ql_response_headers', 'ql_request'] as $logType) {
+            if (isset($GLOBALS[$logType])) {
+                $logData[] = $logType . ' = ' . var_export($GLOBALS[$logType], true);
+                unset($GLOBALS[$logType]);
+            }
+        }*/
+
         file_put_contents($filePath, "\xEF\xBB\xBF" . implode("\n\n", $logData));
         return $fileName;
     }
 
-    private function parseLogFile ($targetLog) {
-        return $targetLog;
+    private function  parseLogFile ($logFile) {
+        $logFile = $this->logs[$logFile];
+
+        if (!empty($_SERVER['HTTP_CLIENT_IP']) && filter_var($_SERVER['HTTP_CLIENT_IP'], FILTER_VALIDATE_IP)) {
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR']) && filter_var($_SERVER['HTTP_X_FORWARDED_FOR'], FILTER_VALIDATE_IP)) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+
+        $iterator = $this->readTheFile($logFile);
+
+        $buffer = [];
+        foreach ($iterator as $iteration) {
+            $position = strpos($iteration, $ip);
+            if ($position === false) {
+                continue;
+            }
+            if (count($buffer) === 50) {
+                array_shift($buffer);
+            }
+            $buffer[] = $iteration;
+        }
+        return $buffer;
+    }
+
+    private function readTheFile($path) {
+        $handle = fopen($path, "r");
+        try {
+            while(!feof($handle)) {
+                yield trim(fgets($handle));
+            }
+        } finally {
+            fclose($handle);
+        }
     }
 
     private function sendTelegramRequest ($data, $sendFile = false) {
@@ -186,7 +248,7 @@ class TelegramLogger {
     }
 
     public function __get($name) {
-        if (in_array($name, ['token', 'chatTarget', 'logPath', 'decorateUrl'])) {
+        if (in_array($name, ['token', 'chatTarget', 'logPath', 'decorateUrl', 'logs'])) {
             return $this->$name;
         } else {
             return null;
