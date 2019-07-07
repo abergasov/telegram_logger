@@ -92,8 +92,8 @@ class BaseTest extends TestCase {
 
         $result = $method->invoke($fancyThing, new Exception ('test exception'));
         $this->assertIsString($result);
-        $this->assertTrue(file_exists(__DIR__  . $result));
-        $this->assertTrue(filesize(__DIR__ . $result) > 0);
+        $this->assertTrue(file_exists(__DIR__  . DIRECTORY_SEPARATOR . $result));
+        $this->assertTrue(filesize(__DIR__ . DIRECTORY_SEPARATOR . $result) > 0);
     }
 
     public function testSendTelegramRequest () {

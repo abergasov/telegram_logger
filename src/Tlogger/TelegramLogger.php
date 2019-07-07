@@ -101,7 +101,39 @@ class TelegramLogger {
 
 
     private function createTraceLogFile ($e) {
-        return null;
+        $fileName = time() . '_' . rand(100, 1000) . '.txt';
+        if (is_string($this->logPath)) {
+            $filePath = $this->logPath . DIRECTORY_SEPARATOR . $fileName;
+        } elseif ($this->logPath === true) {
+            $filePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $fileName;
+        } else {
+            return null;
+        }
+
+        $logData = [];
+        $logData[] = 'Method: ' . filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_STRING);
+
+        $logData[] = '$_GET = ' . var_export(filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING),true);
+        $logData[] = '$_POST = ' . var_export(filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING),true);
+        $logData[] = $e;
+        $logData[] = 'php://input = ' . var_export(file_get_contents('php://input'),true);
+
+        $logData[] = '$_COOKIE = ' . var_export(filter_input_array(INPUT_COOKIE, FILTER_SANITIZE_STRING),true);
+        $logData[] = '$_ENV = ' . var_export(filter_input_array(INPUT_ENV, FILTER_SANITIZE_STRING),true);
+
+        if (isset($_FILES)) {
+            $logData[] = '$_FILES = ' . var_export(filter_var_array($_FILES, FILTER_SANITIZE_STRING),true);
+        }
+        if (isset($_SERVER)) {
+            $logData[] = '$_SERVER = ' . var_export(filter_input_array(INPUT_SERVER, FILTER_SANITIZE_STRING), true);
+        }
+
+        file_put_contents($filePath, "\xEF\xBB\xBF" . implode("\n\n", $logData));
+        return $fileName;
+    }
+
+    private function parseLogFile ($targetLog) {
+        return $targetLog;
     }
 
     private function sendTelegramRequest ($data) {
