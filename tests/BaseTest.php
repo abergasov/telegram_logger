@@ -80,7 +80,7 @@ class BaseTest extends TestCase {
         $logger = new TelegramLogger('123', [123456]);
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Message data can\'t be emty');
-        $logger->sendMessage(123);
+        $logger->sendMessage(0);
     }
 
     public function testCreateTraceLogFile () {
@@ -101,7 +101,7 @@ class BaseTest extends TestCase {
         $method->setAccessible(true);
         $fancyThing = new TelegramLogger('test', 123, __DIR__);
         $result = $method->invoke($fancyThing, []);
-        $data = json_decode($result);
+        $data = json_decode($result, true);
         $this->assertTrue(isset($data['ok']));
 
         $this->expectException(InvalidArgumentException::class);

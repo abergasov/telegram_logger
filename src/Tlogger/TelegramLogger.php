@@ -56,7 +56,20 @@ class TelegramLogger {
      * @return bool
      */
     public function sendMessage ($chat, ...$data) {
-        return true;
+        if (!isset($this->chatTarget[$chat])) {
+            throw new InvalidArgumentException('Chat not found in chat data');
+        }
+        if (count($data) === 0) {
+            throw new InvalidArgumentException('Message data can\'t be emty');
+        }
+        $preparedMessage = implode("\n", $this->transformData($data));
+        $requestResult = $this->sendTelegramRequest([
+            'text' => mb_convert_encoding(strip_tags($preparedMessage), "UTF-8"),
+            'chat_id' => $this->chatTarget
+        ]);
+
+        $response = json_decode($requestResult, true);
+        return is_array($response) && isset($response['ok']) ? $response['ok'] : false;
     }
 
     private function transformData ($data) {
@@ -69,7 +82,19 @@ class TelegramLogger {
     }
 
     private function sendTelegramRequest ($data) {
-
+        if (!is_array($data)) {
+            throw new InvalidArgumentException('Message info array expected');
+        }
+        $url = 'https://api.telegram.org/bot' . $this->token . '/sendMessage';
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type:multipart/form-data"]);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, count($data));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
     }
 
     public function __get($name) {
