@@ -1,5 +1,9 @@
 # telegram_logger
-PHP logger for site
+PHP logger for web site/app
+
+## Example messages
+![telegram_logger](https://github.com/abergasov/telegram_logger/blob/master/images/img_1.png?raw=true)
+![telegram_logger](https://github.com/abergasov/telegram_logger/blob/master/images/img_2.png?raw=true)
 
 ## Config documentation
 | Key          | Type      | Description |
@@ -20,3 +24,5 @@ PHP logger for site
 - Open next url https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates and find chat_id.
 - find @myidbot and send him /getid for personal chat
 - find @myidbot add him to group and send him /getgroupid@myidbot for chat id
+
+![telegram_logger](https://github.com/abergasov/telegram_logger/blob/master/images/img_3.png?raw=true)
