@@ -55,9 +55,15 @@ class BaseTest extends TestCase {
 
         $fancyThing = new TelegramLogger('test', 123);
 
-        $method->invokeArgs($fancyThing, array('13', '22'));
-        $result = $method->invoke($fancyThing, '123');
-        $this->assertIsArray($result);
+        $args = ['123', [123, 323], [123, 323, [33, 55]], new Exception('test exception'), new stdClass()];
+        foreach ($args as $arg) {
+            $result = $method->invokeArgs($fancyThing, [$arg, $arg, $arg]);
+            $this->assertIsArray($result);
+            foreach ($result as $res) {
+                $this->assertTrue(!is_array($res));
+            }
+        }
+
     }
 
     public function testWrongTokenType () {

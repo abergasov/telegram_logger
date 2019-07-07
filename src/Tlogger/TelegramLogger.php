@@ -48,7 +48,7 @@ class TelegramLogger {
         $this->logPath = $createTelegramLog;
     }
 
-    private function transformData ($data) {
+    private function transformData (...$data) {
         return [];
     }
 
