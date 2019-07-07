@@ -4,6 +4,7 @@ namespace Tlogger;
 use InvalidArgumentException;
 use Exception;
 use Throwable;
+use CURLFile;
 
 class TelegramLogger {
 
@@ -68,10 +69,19 @@ class TelegramLogger {
         }
         $this->traceFile = null;
         $preparedMessage = implode("\n", $this->transformData($data));
-        $requestResult = $this->sendTelegramRequest([
-            'text' => mb_convert_encoding(strip_tags($preparedMessage), "UTF-8"),
-            'chat_id' => $this->chatTarget[$chat]
-        ]);
+        $preparedMessage = mb_convert_encoding(strip_tags($preparedMessage), "UTF-8");
+        if (is_null($this->traceFile)) {
+            $requestResult = $this->sendTelegramRequest([
+                'text' => $preparedMessage,
+                'chat_id' => $this->chatTarget[$chat]
+            ]);
+        } else {
+            $requestResult = $this->sendTelegramRequest([
+                'caption' => substr($preparedMessage,0,1020) . '...',
+                'chat_id' => $this->chatTarget[$chat],
+                'document' => new CURLFile(realpath($this->traceFile)),
+            ], true);
+        }
         $this->traceFile = null;
 
         $response = json_decode($requestResult, true);
@@ -152,11 +162,13 @@ class TelegramLogger {
         return $targetLog;
     }
 
-    private function sendTelegramRequest ($data) {
+    private function sendTelegramRequest ($data, $sendFile = false) {
         if (!is_array($data)) {
             throw new InvalidArgumentException('Message info array expected');
         }
-        $url = 'https://api.telegram.org/bot' . $this->token . '/sendMessage';
+        $url = $sendFile ?
+            'https://api.telegram.org/bot' . $this->token . '/sendMessage':
+            'https://api.telegram.org/bot' . $this->token . '/sendDocument?chat_id=' . $data['chat_id'];
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type:multipart/form-data"]);
         curl_setopt($ch, CURLOPT_URL, $url);
