@@ -86,7 +86,7 @@ class TelegramLogger {
             throw new InvalidArgumentException('Message data can\'t be emty');
         }
         $this->traceFile = null;
-        $preparedMessage = implode("\n", $this->transformData($data));
+        $preparedMessage = implode("\n", $this->transformData(...$data));
         $preparedMessage = mb_convert_encoding(strip_tags($preparedMessage), "UTF-8");
         if (is_null($this->traceFile)) {
             $requestResult = $this->sendTelegramRequest([
