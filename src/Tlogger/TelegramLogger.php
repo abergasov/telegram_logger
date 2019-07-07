@@ -17,16 +17,19 @@ class TelegramLogger {
 
     /**
      * TelegramLogger constructor.
-     * @param string $token bot token
-     * @param mixed $chatData target chat for messages. Or array of chats
-     * @param mixed $createTelegramLog should create file with log trace to telegram message. if set log path = trace log will be created there
-     * @param string $decorateUrl url to acess to log via internet. for example https://example.com/trace/logs/
+     * @param array $config settings, see description at https://github.com/abergasov/telegram_logger
      */
-    public function __construct($token, $chatData, $createTelegramLog = false, $decorateUrl = '') {
+    public function __construct($config) {
+        if (!is_array($config)) {
+            throw new InvalidArgumentException('Config should be string');
+        }
+        $token = $config['token'];
         if (!is_string($token)) {
             throw new InvalidArgumentException('Token should be string');
         }
         $this->token = $token;
+
+        $chatData = $config['chats'];
         if (is_numeric($chatData)) {
             $this->chatTarget = [$chatData];
         } elseif (is_string($chatData)) {
@@ -43,13 +46,15 @@ class TelegramLogger {
         } else {
             throw new InvalidArgumentException('Chat data should be an integer or array of integers');
         }
+
+        $createTelegramLog = isset($config['trace_dir']) ? $config['trace_dir'] : false;
         if (is_bool($createTelegramLog)) {
             $this->decorateUrl = '';
         } else {
             if (!is_dir($createTelegramLog)) throw new InvalidArgumentException('Trace path does not exist');
             if (!is_writable($createTelegramLog)) throw new InvalidArgumentException('Trace path is not writable');
         }
-        $this->decorateUrl = $decorateUrl;
+        $this->decorateUrl = isset($config['decorate_url']) ? $config['decorate_url'] : '';
         $this->logPath = $createTelegramLog;
     }
 
@@ -163,12 +168,12 @@ class TelegramLogger {
     }
 
     private function sendTelegramRequest ($data, $sendFile = false) {
-        if (!is_array($data)) {
+        if (!is_array($data) || count($data) === 0) {
             throw new InvalidArgumentException('Message info array expected');
         }
         $url = $sendFile ?
-            'https://api.telegram.org/bot' . $this->token . '/sendMessage':
-            'https://api.telegram.org/bot' . $this->token . '/sendDocument?chat_id=' . $data['chat_id'];
+            'https://api.telegram.org/bot' . $this->token . '/sendDocument?chat_id=' . $data['chat_id'] :
+            'https://api.telegram.org/bot' . $this->token . '/sendMessage';
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type:multipart/form-data"]);
         curl_setopt($ch, CURLOPT_URL, $url);
