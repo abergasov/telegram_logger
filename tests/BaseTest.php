@@ -59,11 +59,54 @@ class BaseTest extends TestCase {
         foreach ($args as $arg) {
             $result = $method->invokeArgs($fancyThing, [$arg, $arg, $arg]);
             $this->assertIsArray($result);
+            $this->assertTrue(count($result) > 0);
             foreach ($result as $res) {
                 $this->assertTrue(!is_array($res));
             }
         }
+    }
 
+    public function testSendMessage () {
+        $logger = new TelegramLogger('123', [123456]);
+        $res = $logger->sendMessage(0, 'test message', 'testSendMessage function');
+        $this->assertIsBool($res);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Chat not found in chat data');
+        $logger->sendMessage(123, 'test message', 'testSendMessage function');
+    }
+
+    public function testSendMessageEmptyData () {
+        $logger = new TelegramLogger('123', [123456]);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Message data can\'t be emty');
+        $logger->sendMessage(123);
+    }
+
+    public function testCreateTraceLogFile () {
+        $method = new ReflectionMethod('Tlogger\TelegramLogger', 'createTraceLogFile');
+        $method->setAccessible(true);
+        $fancyThing = new TelegramLogger('test', 123, __DIR__);
+        $result = $method->invoke($fancyThing, '');
+        $this->assertNull($result);
+
+        $result = $method->invoke($fancyThing, new Exception ('test exception'));
+        $this->assertIsString($result);
+        $this->assertTrue(file_exists(__DIR__  . $result));
+        $this->assertTrue(filesize(__DIR__ . $result) > 0);
+    }
+
+    public function testSendTelegramRequest () {
+        $method = new ReflectionMethod('Tlogger\TelegramLogger', 'sendTelegramRequest');
+        $method->setAccessible(true);
+        $fancyThing = new TelegramLogger('test', 123, __DIR__);
+        $result = $method->invoke($fancyThing, []);
+        $data = json_decode($result);
+        $this->assertTrue(isset($data['ok']));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Message info array expected');
+        $method->invoke($fancyThing, '123213');
     }
 
     public function testWrongTokenType () {

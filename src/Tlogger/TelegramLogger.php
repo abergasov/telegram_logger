@@ -48,8 +48,28 @@ class TelegramLogger {
         $this->logPath = $createTelegramLog;
     }
 
-    private function transformData (...$data) {
+    /**
+     * Send message via telegram
+     * If $data will contains exception, stack trace log will be created
+     * @param $chat
+     * @param mixed ...$data
+     * @return bool
+     */
+    public function sendMessage ($chat, ...$data) {
+        return true;
+    }
+
+    private function transformData ($data) {
         return [];
+    }
+
+
+    private function createTraceLogFile ($e) {
+        return null;
+    }
+
+    private function sendTelegramRequest ($data) {
+
     }
 
     public function __get($name) {
