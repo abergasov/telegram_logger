@@ -2,6 +2,8 @@
 
 namespace Tlogger;
 use InvalidArgumentException;
+use Exception;
+use Throwable;
 
 class TelegramLogger {
 
@@ -72,8 +74,29 @@ class TelegramLogger {
         return is_array($response) && isset($response['ok']) ? $response['ok'] : false;
     }
 
-    private function transformData ($data) {
-        return [];
+    private function transformData (...$data) {
+        $result = [];
+        foreach ($data as $datum) {
+            if ($datum instanceof Exception || $datum instanceof Throwable) {
+                $result[] = implode("\n", [
+                    $datum->getMessage() . ', code:' .  $datum->getCode(),
+                    $datum->getFile() . ':' . $datum->getLine(),
+                    'Request info:' . $this->createTraceLogFile($datum)
+                ]);
+                continue;
+            }
+            switch (gettype($datum)) {
+                case 'array':
+                    $result[] = implode("\n", $datum);
+                    break;
+                case 'object':
+                    $result[] = substr(serialize($datum), 0, 200);
+                    break;
+                default:
+                    $result[] = $datum;
+            }
+        }
+        return $result;
     }
 
 
