@@ -5,6 +5,40 @@ PHP logger for web site/app
 ![telegram_logger](https://github.com/abergasov/telegram_logger/blob/master/images/img_1.png?raw=true)
 ![telegram_logger](https://github.com/abergasov/telegram_logger/blob/master/images/img_2.png?raw=true)
 
+## Usage
+```
+const INFO_CHAT = 0;
+const ERROR_CHAT = 1;
+const CONTACT_CHAT = 2;
+
+$logger = new TelegramLogger([
+    'token' => SET_YOUR_TOKEN_HERE,
+    'chats' => [
+        INFO_CHAT => -199024103,
+        ERROR_CHAT => -293646246,
+        CONTACT_CHAT => -305488244,
+    ],
+    'trace_dir' => __DIR__ . '/trace/logs',
+    'decorate_url' => 'https://example.com/trace/logs',
+    'logs' => [
+        'access_log' => '/home/admin/web/my_site/logs/access_log.log',
+        'error_log' => '/home/admin/web/my_site/logs/error_log.log',
+    ]
+]);
+
+$result = $logger->sendMessage(INFO_CHAT, 'Hello, I need help', 'Additional info 1', 'Additional info 2', 'Additional info 3');
+if ($result) {
+    echo 'Info message was send' . PHP_EOL;
+} else {
+    echo 'Troubles in send messages' . PHP_EOL;
+}
+try {
+    throw new RuntimeException('Something went wrong in this world');
+} catch (Throwable $t) {
+    $logger->sendMessage(ERROR_CHAT, 'Exception in script', $t);
+}
+```
+
 ## Config documentation
 | Key          | Type      | Description |
 | ------------ |:----------| :-----------|
