@@ -98,17 +98,10 @@ class TelegramLogger {
     }
 
     public function __get($name) {
-        switch ($name) {
-            case 'token':
-                return $this->token;
-            case 'chatTarget':
-                return $this->chatTarget;
-            case 'logPath':
-                return $this->logPath;
-            case 'decorateUrl':
-                return $this->decorateUrl;
-            default:
-                return null;
+        if (in_array($name, ['token', 'chatTarget', 'logPath', 'decorateUrl'])) {
+            return $this->$name;
+        } else {
+            return null;
         }
     }
 }
