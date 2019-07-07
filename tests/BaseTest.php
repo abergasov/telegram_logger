@@ -66,6 +66,36 @@ class BaseTest extends TestCase {
         }
     }
 
+    public function testImplodeAll () {
+        $method = new ReflectionMethod('Tlogger\TelegramLogger', 'implodeAll');
+        $method->setAccessible(true);
+
+        $arr = [
+            1,
+            2,
+            ['232', '33'],
+            ['55'],
+            [
+                ['23'. 55, 'tst str'],
+                ['7'. 666, '2 tst str',
+                    ['55'],
+                    [
+                        ['23'. 55, 'tst str'],
+                        ['7'. 666, '2 tst str'],
+                        555
+                    ]
+                ],
+                555
+            ]
+        ];
+
+        $fancyThing = new TelegramLogger('test', 123);
+        $result = $method->invokeArgs($fancyThing, [',', $arr]);
+        $this->assertIsString($result);
+        $this->assertTrue(strpos($result, 'tst') !== false);
+        $this->assertTrue(strpos($result, '232') !== false);
+    }
+
     public function testSendMessage () {
         $logger = new TelegramLogger('123', [123456]);
         $res = $logger->sendMessage(0, 'test message', 'testSendMessage function');
@@ -86,10 +116,11 @@ class BaseTest extends TestCase {
     public function testCreateTraceLogFile () {
         $method = new ReflectionMethod('Tlogger\TelegramLogger', 'createTraceLogFile');
         $method->setAccessible(true);
-        $fancyThing = new TelegramLogger('test', 123, __DIR__);
+        $fancyThing = new TelegramLogger('test', 123, false);
         $result = $method->invoke($fancyThing, '');
         $this->assertNull($result);
 
+        $fancyThing = new TelegramLogger('test', 123, __DIR__);
         $result = $method->invoke($fancyThing, new Exception ('test exception'));
         $this->assertIsString($result);
         $this->assertTrue(file_exists(__DIR__  . DIRECTORY_SEPARATOR . $result));

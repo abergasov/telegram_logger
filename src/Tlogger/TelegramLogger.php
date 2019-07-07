@@ -12,6 +12,8 @@ class TelegramLogger {
     private $logPath = null;
     private $decorateUrl = null;
 
+    private $traceFile = null;
+
     /**
      * TelegramLogger constructor.
      * @param string $token bot token
@@ -64,11 +66,13 @@ class TelegramLogger {
         if (count($data) === 0) {
             throw new InvalidArgumentException('Message data can\'t be emty');
         }
+        $this->traceFile = null;
         $preparedMessage = implode("\n", $this->transformData($data));
         $requestResult = $this->sendTelegramRequest([
             'text' => mb_convert_encoding(strip_tags($preparedMessage), "UTF-8"),
-            'chat_id' => $this->chatTarget
+            'chat_id' => $this->chatTarget[$chat]
         ]);
+        $this->traceFile = null;
 
         $response = json_decode($requestResult, true);
         return is_array($response) && isset($response['ok']) ? $response['ok'] : false;
@@ -78,16 +82,21 @@ class TelegramLogger {
         $result = [];
         foreach ($data as $datum) {
             if ($datum instanceof Exception || $datum instanceof Throwable) {
+                $traceFile = $this->createTraceLogFile($datum);
                 $result[] = implode("\n", [
                     $datum->getMessage() . ', code:' .  $datum->getCode(),
-                    $datum->getFile() . ':' . $datum->getLine(),
-                    'Request info:' . $this->createTraceLogFile($datum)
+                    $datum->getFile() . ':' . $datum->getLine()
                 ]);
+                if ($this->decorateUrl !== '' && is_string($this->logPath)) {
+                    $result[] = 'Request info:' . $this->decorateUrl . '/' . $traceFile;
+                } elseif ($this->logPath === true) {
+                    $this->traceFile = $traceFile;
+                }
                 continue;
             }
             switch (gettype($datum)) {
                 case 'array':
-                    $result[] = implode("\n", $datum);
+                    $result[] = $this->implodeAll("\n", $datum);
                     break;
                 case 'object':
                     $result[] = substr(serialize($datum), 0, 200);
@@ -99,6 +108,13 @@ class TelegramLogger {
         return $result;
     }
 
+    private function implodeAll($glue, $arr){
+        for ($i=0; $i<count($arr); $i++) {
+            if (@is_array($arr[$i]))
+                $arr[$i] = $this->implodeAll ($glue, $arr[$i]);
+        }
+        return implode($glue, $arr);
+    }
 
     private function createTraceLogFile ($e) {
         $fileName = time() . '_' . rand(100, 1000) . '.txt';
