@@ -17,6 +17,7 @@ $logger = new TelegramLogger([
         INFO_CHAT => -199024103,
         ERROR_CHAT => -293646246,
         CONTACT_CHAT => -305488244,
+        ... add more or less if need
     ],
     'trace_dir' => __DIR__ . '/trace/logs',
     'decorate_url' => 'https://example.com/trace/logs',
@@ -27,11 +28,8 @@ $logger = new TelegramLogger([
 ]);
 
 $result = $logger->sendMessage(INFO_CHAT, 'Hello, I need help', 'Additional info 1', 'Additional info 2', 'Additional info 3');
-if ($result) {
-    echo 'Info message was send' . PHP_EOL;
-} else {
-    echo 'Troubles in send messages' . PHP_EOL;
-}
+echo ($result ? 'Info message was send' : 'Troubles in send messages') . PHP_EOL;
+
 try {
     throw new RuntimeException('Something went wrong in this world');
 } catch (Throwable $t) {
