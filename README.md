@@ -5,6 +5,9 @@ PHP logger for web site/app
 ![telegram_logger](https://github.com/abergasov/telegram_logger/blob/master/images/img_1.png?raw=true)
 ![telegram_logger](https://github.com/abergasov/telegram_logger/blob/master/images/img_2.png?raw=true)
 
+## Instalation
+> composer require abergasov/telegram_logger
+
 ## Usage
 ```
 const INFO_CHAT = 0;
