@@ -138,7 +138,7 @@ class TelegramLogger {
 
     private function implodeAll($glue, $arr){
         for ($i=0; $i<count($arr); $i++) {
-            if (@is_array($arr[$i]))
+            if (isset($arr[$i]) && is_array($arr[$i]))
                 $arr[$i] = $this->implodeAll ($glue, $arr[$i]);
         }
         return implode($glue, $arr);
