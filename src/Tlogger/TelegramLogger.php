@@ -88,6 +88,7 @@ class TelegramLogger {
         $this->traceFile = null;
         $preparedMessage = implode("\n", $this->transformData(...$data));
         $preparedMessage = mb_convert_encoding(strip_tags($preparedMessage), "UTF-8");
+        $preparedMessage = mb_substr($preparedMessage, 0, 3900);
         if (is_null($this->traceFile)) {
             $requestResult = $this->sendTelegramRequest([
                 'text' => $preparedMessage,
@@ -137,9 +138,10 @@ class TelegramLogger {
     }
 
     private function implodeAll($glue, $arr){
-        for ($i=0; $i<count($arr); $i++) {
-            if (isset($arr[$i]) && is_array($arr[$i]))
-                $arr[$i] = $this->implodeAll ($glue, $arr[$i]);
+        foreach ($arr as $i => &$el) {
+            if (is_array($el)) {
+                $el = $this->implodeAll ($glue, $el);
+            }
         }
         return implode($glue, $arr);
     }
