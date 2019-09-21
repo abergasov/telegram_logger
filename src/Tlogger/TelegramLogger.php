@@ -117,6 +117,13 @@ class TelegramLogger {
         $this->traceParams[$paramTitle] = $paramValue;
     }
 
+    /**
+     * Clear trace params list
+     */
+    public function clearTraceParams () {
+        $this->traceParams = [];
+    }
+
     private function transformData (...$data) {
         $result = [];
         foreach ($data as $datum) {
