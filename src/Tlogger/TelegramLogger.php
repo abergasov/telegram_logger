@@ -15,6 +15,7 @@ class TelegramLogger {
     private $logs = [];
 
     private $traceFile = null;
+    private $traceParams = [];
 
     /**
      * TelegramLogger constructor.
@@ -107,6 +108,15 @@ class TelegramLogger {
         return is_array($response) && isset($response['ok']) ? $response['ok'] : false;
     }
 
+    /**
+     * Add params to trace log
+     * @param string $paramTitle
+     * @param $paramValue
+     */
+    public function addTraceParam ($paramTitle, $paramValue) {
+        $this->traceParams[$paramTitle] = $paramValue;
+    }
+
     private function transformData (...$data) {
         $result = [];
         foreach ($data as $datum) {
@@ -163,6 +173,12 @@ class TelegramLogger {
         $logData[] = '$_POST = ' . var_export(filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING),true);
         $logData[] = $e;
         $logData[] = 'php://input = ' . var_export(file_get_contents('php://input'),true);
+
+        if (count($this->traceParams) > 0) {
+            foreach ($this->traceParams as $paramName => $paramValue) {
+                $logData[] = $fileName . ' = ' . var_export($paramValue,true);
+            }
+        }
 
         $logData[] = '$_COOKIE = ' . var_export(filter_input_array(INPUT_COOKIE, FILTER_SANITIZE_STRING),true);
         $logData[] = '$_ENV = ' . var_export(filter_input_array(INPUT_ENV, FILTER_SANITIZE_STRING),true);
