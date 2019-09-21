@@ -183,7 +183,7 @@ class TelegramLogger {
 
         if (count($this->traceParams) > 0) {
             foreach ($this->traceParams as $paramName => $paramValue) {
-                $logData[] = $fileName . ' = ' . var_export($paramValue,true);
+                $logData[] = $paramName . ' = ' . var_export($paramValue,true);
             }
         }
 
