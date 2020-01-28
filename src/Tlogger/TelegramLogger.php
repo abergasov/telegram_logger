@@ -14,6 +14,10 @@ class TelegramLogger {
     private $decorateUrl = null;
     private $logs = [];
 
+    //slack config here
+    private $slackToken = null;
+    private $slackChannelsTarget = null;
+
     private $traceFile = null;
     private $traceParams = [];
 
@@ -73,6 +77,25 @@ class TelegramLogger {
     }
 
     /**
+     * Slack config add if necessary
+     * @param $config
+     */
+    public function addSlackConfig ($config) {
+        $tokenExist = isset($config['token']) && is_string($config['token']);
+        $channelsExist = isset($config['channels']) && is_array($config['channels']);
+        if (!$tokenExist || !$channelsExist) {
+            return;
+        }
+        foreach ($config['channels'] as $channel) {
+            if (is_array($channel) || !is_string($channel)) {
+                return;
+            }
+        }
+        $this->slackToken = $config['token'];
+        $this->slackChannelsTarget = $config['channels'];
+    }
+
+    /**
      * Send message via telegram
      * If $data will contains exception, stack trace log will be created
      * @param $chat
@@ -95,6 +118,7 @@ class TelegramLogger {
                 'text' => $preparedMessage,
                 'chat_id' => $this->chatTarget[$chat]
             ]);
+            $this->sendSlackRequest($preparedMessage, $chat);
         } else {
             $requestResult = $this->sendTelegramRequest([
                 'caption' => substr($preparedMessage,0,1020) . '...',
@@ -252,6 +276,30 @@ class TelegramLogger {
         } finally {
             fclose($handle);
         }
+    }
+
+    private function sendSlackRequest ($text, $channelId, $sendFile = false) {
+        if (is_null($this->slackToken)) {
+            return null;
+        }
+        $chanelExist = is_array($this->slackChannelsTarget) && isset($this->slackChannelsTarget[$channelId]);
+        if (!$chanelExist) {
+            return null;
+        }
+        $ch = curl_init("https://slack.com/api/chat.postMessage");
+        $data = http_build_query([
+            "token" => $this->slackToken,
+            "channel" => $this->slackChannelsTarget[$channelId],
+            "text" => $text,
+            "username" => "coworkstation_jedi",
+        ]);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
     }
 
     private function sendTelegramRequest ($data, $sendFile = false) {

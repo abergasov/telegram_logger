@@ -25,6 +25,14 @@ class MyUberClass {
                 'error_log' => '/home/admin/web/my_site/logs/error_log.log',
             ]
         ]);
+        $this->telegramLogger->addSlackConfig([
+            'token' => SET_YOUR_SLACK_TOKEN_HERE,
+            'channels' => [
+                self::INFO_CHAT => 'GF4UTEHGB',
+                self::ERROR_CHAT => 'GF4UTEHGB',
+                self::CONTACT_CHAT => 'GF4UTEHGB',
+            ],
+        ]);
     }
 
     public function sentInfoMessage (...$messageData) {

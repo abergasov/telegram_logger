@@ -1,9 +1,12 @@
 # telegram_logger
 PHP logger for web site/app
 
-## Example messages
-![telegram_logger](https://github.com/abergasov/telegram_logger/blob/master/images/img_1.png?raw=true)
-![telegram_logger](https://github.com/abergasov/telegram_logger/blob/master/images/img_2.png?raw=true)
+## Example messages telegram/slack
+![Repo_List](images/img_1.png?raw=true)
+
+![Repo_List](images/img_2.png?raw=true)
+
+![Repo_List](images/slack_example.png)
 
 ## Instalation
 > composer require abergasov/telegram_logger
@@ -28,6 +31,14 @@ $logger = new TelegramLogger([
         'access_log' => '/home/admin/web/my_site/logs/access_log.log',
         'error_log' => '/home/admin/web/my_site/logs/error_log.log',
     ]
+]);
+$logger->addSlackConfig([
+    'token' => SET_YOUR_SLACK_TOKEN_HERE,
+    'channels' => [
+        INFO_CHAT => 'GF4UTEHGB',
+        ERROR_CHAT => 'GF4UTEHGB',
+        CONTACT_CHAT => 'GF4UTEHGB',
+    ],
 ]);
 
 $result = $logger->sendMessage(INFO_CHAT, 'Hello, I need help', 'Additional info 1', 'Additional info 2', 'Additional info 3');
